@@ -1,0 +1,114 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PS
+
+y=x+w+O>0  +1
+y=x+w+O<0  -1
+
+and=d(x)
+
+x1/x2/and 
+
+-1/-1/-1 O=0.5 w1=1 w2=1
+
+-1(1)+(-1)(1)+0.5= -1.5 (bien) dx =-1
+
+
+W1=w1+d(x)*x1
+W2=w2+d(x)*x2
+O=O+d(x)
+
+//////////////
+ADLINE
+
+y=x*w+...
+alfa=0.3
+
+E=d(x)-y=1-0.217
+
+nuevos pesos
+W1=w1+alfa*E*x1
+
+//////////
+HPFIELD
+
+negro=1
+blanco=-1
+
+
+E1=mmV*mmH-MI
+E2=mmV*mmH-MI
+m4x4=E1+E2
+
+vector E
+
+E*m4x4=mH1*4
+
+
+///////////////////////
+backp
+
+E
+CO
+CS
+
+CO
+	NO1
+		E=w11*e1+w21*e2
+		SO1=1/(1+e^(-E))
+
+CS
+	E=W1*SO1+W2*SO2
+	S=1/(1+e^(-E))
+
+bcpr
+
+error	
+	error=(1-SO2)
+	Deltak=error*CS(1-CS)
+
+w2 CS
+
+	W2=w2+0.25*CSO1*deltak
+	W22=w2+0.25*CSO2*deltak
+
+w1 CO
+	error=CSO1(1-CSO1)*W2*Deltak
+
+	W1=w1+0.25*CE1*error
+	W11=w1+0.25*CE2*error
+
+	error2=CS02(1-CS02)*W22*Deltak
+
+	W12=w12+0.25*CE1*error2
+	W22=w22+0.25*CE2*error2
+
+
+
