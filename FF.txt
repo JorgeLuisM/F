@@ -1,0 +1,358 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Perceptron adaline
+
+from numpy import array, array_equal, dot, where
+
+
+# In[6]:
+
+
+def train(set_input,set_output,set_weight):
+	salida = array([[0.0,0.0,0.0,0.0]]).T
+	count_epoca = 1
+	
+	while (not(array_equal(salida,set_output))):
+		output_epoca = []
+		nro_fila = 0
+		print(' -----EPOCA: ',count_epoca,'------')
+		for fila_epoca in set_input:
+			print('Entrada',fila_epoca)
+			real = predict(fila_epoca,set_weight)
+			print('real: ',real)
+			deseada = set_output[nro_fila,:]
+			print('deseada: ',deseada)
+			error = deseada - real		
+			print('error: ',error)
+			if(error[0] != [0]):
+				set_weight = modify_weight(set_weight,fila_epoca,error)
+			output_epoca.append(real[0])
+			nro_fila = nro_fila+1
+			print('Peso:\n',set_weight,'\n')
+			print('------------------------------')
+		salida = array([output_epoca]).T	
+		count_epoca = count_epoca + 1
+		print('Salida:\n',salida,'\n')
+		print('---------FIN --------------')
+
+	
+def predict(fila,weight):
+	return where(dot(fila,weight)>=0,1,-1)
+
+def modify_weight(weight,fila,e):
+	return weight+(e*(array([fila]).T))
+
+def main():
+
+	BIAS = 1
+	training_set_data_input = array([[-1,-1,BIAS],[1,-1,BIAS],[-1,1,BIAS],[1,1,BIAS]])
+	training_set_data_output = array([[-1,-1,-1,1]]).T
+	set_data_weight = array([[1,1,0.5]]).T
+	print('Training_data_input:\n',training_set_data_input,'\n')
+	print('Training_data_output:\n',training_set_data_output,'\n')	
+	print('Init_weight:\n',set_data_weight,'\n')
+
+	train(training_set_data_input,training_set_data_output,set_data_weight)
+
+main()
+
+
+
+
+////////////////////
+
+
+////Gramatica
+
+# Crear una gramatica
+import nltk
+from nltk import CFG
+from nltk.parse.generate import generate
+#1) <frase>::= <sujeto><predicado>
+#2) <sujeto>::= juan | pedro | maría | salgado
+#3) <predicado>::= <verbo transitivo><objeto directo>
+#4) <predicado>::= <verbo intransitivo>
+#5) <verbo transitivo>::= ama | lava | peina | adora
+#6) <objeto directo>::= paula | antonio | sultán
+#7) <verbo intransitivo>::= corre | salta | camina
+
+Gramtica1 = CFG.fromstring("""
+
+F -> SU P
+SU -> 'juan' | 'pedro' | 'maria' | 'salgado'
+P -> VT OD
+P -> VI
+VT -> 'ama' | 'lava' | 'peina' | 'adora'
+OD -> 'paula' | 'antonio' | 'sultan'
+VI -> 'corre' | 'salta' | 'camina'
+""")
+
+print('La gramatica:', Gramtica1)
+print('Inicio =>', Gramtica1.start())
+print('Productiones =>')
+
+# Mostrar las producciones de la gramatica
+print(Gramtica1.productions())
+
+print('Cobertura de palabras ingresadas a la gramatica:')
+
+try:
+    #maría ama antonio
+    Gramtica1.check_coverage(['maria', 'ama', 'antonio'])
+    print("Todas las palabras estan cubiertas")
+except:
+    print("Error")
+
+#try:
+#    print(grammar.check_coverage(['a','toy']))
+#except:
+ #   print("Algunas palabras no estan cubiertas")
+
+for sentence in generate(Gramtica1, n=50):
+    print(' '.join(sentence))
+
+Frese = ['maria', 'ama', 'antonio']
+parser = nltk.ChartParser(Gramtica1)
+for Arbol in parser.parse(Frese):
+    print(Arbol)
+
+
+
+/////////////////////////////////
+
+
+///backpropagation
+
+
+import numpy as np 
+
+def sigmoid (x):
+    return 1/(1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+inputs = np.array([[0,0],[0,1],[1,0],[1,1]])
+expected_output = np.array([[0],[1],[1],[0]])
+
+epochs = 10000
+lr = 0.25
+inputLayerNeurons, hiddenLayerNeurons, outputLayerNeurons = 2,2,1
+
+hidden_weights = np.random.uniform(size=(inputLayerNeurons,hiddenLayerNeurons))
+hidden_bias =np.random.uniform(size=(1,hiddenLayerNeurons))
+output_weights = np.random.uniform(size=(hiddenLayerNeurons,outputLayerNeurons))
+output_bias = np.random.uniform(size=(1,outputLayerNeurons))
+
+print("Initial hidden weights: ")
+print(*hidden_weights)
+print("Initial hidden biases: ")
+print(*hidden_bias)
+print("Initial output weights: ")
+print(*output_weights)
+print("Initial output biases: ")
+print(*output_bias)
+
+for _ in range(epochs):
+	#Forward Propagation
+	hidden_layer_activation = np.dot(inputs,hidden_weights)
+	hidden_layer_activation += hidden_bias
+	hidden_layer_output = sigmoid(hidden_layer_activation)
+
+	output_layer_activation = np.dot(hidden_layer_output,output_weights)
+	output_layer_activation += output_bias
+	predicted_output = sigmoid(output_layer_activation)
+
+	#Backpropagation
+	error = expected_output - predicted_output
+	d_predicted_output = error * sigmoid_derivative(predicted_output)
+	
+	error_hidden_layer = d_predicted_output.dot(output_weights.T)
+	d_hidden_layer = error_hidden_layer * sigmoid_derivative(hidden_layer_output)
+
+	#Updating Weights and Biases
+	output_weights += hidden_layer_output.T.dot(d_predicted_output) * lr
+	output_bias += np.sum(d_predicted_output) * lr
+	hidden_weights += inputs.T.dot(d_hidden_layer) * lr
+	hidden_bias += np.sum(d_hidden_layer) * lr
+
+print("Final hidden weights: ")
+print(hidden_weights)
+print("Final hidden bias: ")
+print(hidden_bias)
+print("Final output weights: ")
+print(output_weights)
+print("Final output bias: ")
+print(output_bias)
+
+print("\nOutput from neural network after 10,000 epochs: ")
+print(predicted_output)
+
+
+
+////////////////////////////////
+
+
+//logicadeprimer
+
+from kanren import Relation,fact, facts, var, run, conde
+ 
+Progenitor = Relation()
+Hombre = Relation()
+Mujer = Relation()
+ 
+#Hechos
+fact(Hombre, "Homero")
+fact(Hombre, "Bart")
+fact(Hombre, "Abraham")
+fact(Hombre, "Clancy")
+fact(Hombre, "Kang")
+fact(Mujer, "Jackeline")
+fact(Mujer, "Mona")
+fact(Mujer, "Marge")
+fact(Mujer, "Paty")
+fact(Mujer, "Selma")
+fact(Mujer, "Maggie")
+fact(Mujer, "Lisa")
+facts(Progenitor, ("Homero", "Bart"),
+                  ("Marge", "Bart"))
+facts(Progenitor, ("Homero", "Lisa"),
+                  ("Marge", "Lisa"))
+facts(Progenitor, ("Kang", "Maggie"),
+                  ("Marge", "Maggie"))
+facts(Progenitor, ("Abraham", "Homero"),
+                  ("Mona", "Homero"))
+facts(Progenitor, ("Clancy", "Marge"),
+                  ("Jackeline", "Marge"))
+facts(Progenitor, ("Clancy", "Selma"),
+                  ("Jackeline", "Selma"))
+facts(Progenitor, ("Clancy", "Paty"),
+                  ("Jackeline", "Paty"))
+ 
+#Reglas
+
+def Abuela(X, Y):
+    Z = var()
+    return conde((Progenitor(X, Z), Progenitor(Z, Y), Mujer(X)))
+
+ 
+#Tarea:  Madre, Padre, Esposos, Herman@s
+ 
+#####################################################
+X = var()
+Y = var()
+Z = var()
+#1- El abuela de Bart
+res = run(0, X, Abuela(X, "Bart"))
+print(res)
+
+
+
+///////////////////////////////////
+
+///wumpus
+
+
+def bicondicional(p,q):
+    z = (p and q) or (not p and not q)
+    return z
+
+def conjuncion(p,q):
+    z= (p and q)
+    return z
+
+def disyuncion(p,q):
+    z= (p or q)
+    return z
+
+def implicacion(p,q):
+    if (p == False):
+        z = True
+    else:
+        z = q
+    return z
+
+def xor(p,q):
+    z= (p and not q) or (not p and q)
+    return z
+
+def negacion(p):
+    z= not p
+    return z
+
+if __name__ == '__main__':
+    Datos = []
+    b11 = [False, True]
+    b21 = [False, True]
+    p11 = [False, True]
+    p12 = [False, True]
+    p21 = [False, True]
+    p22 = [False, True]
+    p31 = [False, True]
+    
+    for b11val in b11:
+        for b21val in b21:
+             for p11val in p11:
+                  for p12val in p12:
+                       for p21val in p21:
+                            for p22val in p22:
+                                 for p31val in p31:
+                                    Lista = []
+                                    Lista.append(b11val)
+                                    Lista.append(b21val)
+                                    Lista.append(p11val)
+                                    Lista.append(p12val)
+                                    Lista.append(p21val)
+                                    Lista.append(p22val)
+                                    Lista.append(p31val)
+                                    Datos.append(Lista)
+
+    i = 0        
+    for (b11,b21,p11,p12,p21,p22,p31) in Datos:
+        r1=negacion(p11)
+        r2=bicondicional(b11,disyuncion(p12,p21))
+        r3=bicondicional(b21,disyuncion(p11,disyuncion(p22,p31)))
+        r4=negacion(b11)
+        r5=b21
+        bc=conjuncion(r1,conjuncion(r2,conjuncion(r3,conjuncion(r4,r5))))
+
+        i =i+1
+        print(i,"-",b11," ",b21," ",p11," ",p12," ",p21," ",p22," ",p31,"->",r1," ",r2," ",r3," ",r4," ",r5," ",bc)
+        
+       
+
+
+
+///////////////////////
+
+
